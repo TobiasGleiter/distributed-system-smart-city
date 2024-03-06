@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  air-quality:
+    build: air-quality/
+    image: air-quality
+    networks:
+      - my_network
+    deploy:
+      replicas: 3
+
+  water-quality:
+    build: water-quality/
+    container_name: water-quality
+    image: water-quality
+    networks:
+      - my_network
+
+  temperature:
+    build: temperature/
+    container_name: temperature
+    image: temperature
+    networks:
+      - my_network
+
+  volume:
+    build: volume/
+    container_name: volume
+    image: volume
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
