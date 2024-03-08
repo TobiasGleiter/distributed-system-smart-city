@@ -1,4 +1,6 @@
-# Sensor Simulation Programs
+# Sensor Simulation Programs 🆙
+
+## Sensors
 
 There are four simulation programms:
 
@@ -9,3 +11,12 @@ There are four simulation programms:
 
 Run `docker-compose up -d --build` to run the simulation in docker.
 Note: Air-Quality has currently 3 replicas.
+
+## NATS Topics
+
+The sensors send values on the following topics:
+
+- `water_quality`
+- `air_quality`
+- `temperature`
+- `volume`
