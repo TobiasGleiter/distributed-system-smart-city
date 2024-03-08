@@ -14,7 +14,7 @@ class Sensor(ABC):
         pass
 
 
-class AirQuality(Sensor):
+class AirQualitySensor(Sensor):
     async def set_client(self, client):
         self.client = client
 

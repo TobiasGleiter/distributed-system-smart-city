@@ -1,17 +1,17 @@
 import asyncio
 import nats
-from sensors import AirQualitySensor
+from sensors import TemperatureSensor
 
 
 async def main():
     try:
         nats_client_connection = await nats.connect("demo.nats.io")
 
-        air_quality_sensor = AirQualitySensor()
-        await air_quality_sensor.set_client(nats_client_connection)
+        temperature_sensor = TemperatureSensor()
+        await temperature_sensor.set_client(nats_client_connection)
 
         while True:
-            await air_quality_sensor.send()
+            await temperature_sensor.send()
             await asyncio.sleep(5)
 
     except KeyboardInterrupt:

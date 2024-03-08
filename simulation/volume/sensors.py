@@ -1,3 +1,4 @@
+import asyncio
 import random
 import time
 from abc import ABC, abstractmethod
@@ -13,13 +14,10 @@ class Sensor(ABC):
         pass
 
 
-class Volume(Sensor):
-    def set_client(self, client):
+class VolumeSensor(Sensor):
+    async def set_client(self, client):
         self.client = client
 
-    def send(self):
+    async def send(self):
         volume_value = random.uniform(60.0, 110.0)
-        self.client.publish("volume", payload=str(
-            volume_value), qos=1, retain=False)
-        print("Published volume:", volume_value)
-        time.sleep(5)
+        await self.client.publish("volume", str(volume_value).encode())

@@ -1,3 +1,4 @@
+import asyncio
 import random
 import time
 from abc import ABC, abstractmethod
@@ -13,13 +14,10 @@ class Sensor(ABC):
         pass
 
 
-class WaterQuality(Sensor):
-    def set_client(self, client):
+class WaterQualitySensor(Sensor):
+    async def set_client(self, client):
         self.client = client
 
-    def send(self):
+    async def send(self):
         water_quality_value = random.uniform(0, 100)
-        self.client.publish("water_quality", payload=str(
-            water_quality_value), qos=1, retain=False)
-        print("Published water quality:", water_quality_value)
-        time.sleep(5)
+        await self.client.publish("water_quality", str(water_quality_value).encode())

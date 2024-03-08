@@ -13,6 +13,9 @@ async def subscribe():
 
     # Subscribe to a subject
     await nc.subscribe("air_quality", cb=message_handler)
+    await nc.subscribe("water_quality", cb=message_handler)
+    await nc.subscribe("temperature", cb=message_handler)
+    await nc.subscribe("volume", cb=message_handler)
 
     # Keep the connection open
     await asyncio.sleep(3600)

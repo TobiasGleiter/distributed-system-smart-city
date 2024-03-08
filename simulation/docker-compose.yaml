@@ -5,7 +5,7 @@ services:
     build: air-quality/
     image: air-quality
     networks:
-      - my_network
+      - sensors
     deploy:
       replicas: 3
 
@@ -14,22 +14,22 @@ services:
     container_name: water-quality
     image: water-quality
     networks:
-      - my_network
+      - sensors
 
   temperature:
     build: temperature/
     container_name: temperature
     image: temperature
     networks:
-      - my_network
+      - sensors
 
   volume:
     build: volume/
     container_name: volume
     image: volume
     networks:
-      - my_network
+      - sensors
 
 networks:
-  my_network:
+  sensors:
     driver: bridge
