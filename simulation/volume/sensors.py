@@ -1,6 +1,6 @@
-import asyncio
+import uuid
 import random
-import time
+import json
 from abc import ABC, abstractmethod
 
 
@@ -15,9 +15,16 @@ class Sensor(ABC):
 
 
 class VolumeSensor(Sensor):
+    sensor_id = str(uuid.uuid4())
+
     async def set_client(self, client):
         self.client = client
 
     async def send(self):
         volume_value = random.uniform(60.0, 110.0)
-        await self.client.publish("volume", str(volume_value).encode())
+        message = {
+            "sensor_id": self.sensor_id,
+            "value": volume_value,
+            "unit": "VU"
+        }
+        await self.client.publish("volume", json.dumps(message).encode())
