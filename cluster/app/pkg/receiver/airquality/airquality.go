@@ -32,13 +32,11 @@ func (a *AirQualityReceiver) SaveIncomingAirQualityToDatabase() {
             return
         }
 
-        
-        query := fmt.Sprintf(`[
-            ["INSERT INTO air_quality (sensor_id, value, unit) VALUES(\"%s\", %.1f, \"%s\")"]
-        ]`, airQualityMsg.SensorID, airQualityMsg.Value, airQualityMsg.Unit)
+        query := fmt.Sprintf(`
+        ["INSERT INTO air_quality (sensor_id, value, unit) VALUES(\"%s\", %f, \"%s\") ON CONFLICT(sensor_id) DO UPDATE SET value = EXCLUDED.value, unit = EXCLUDED.unit"]`, airQualityMsg.SensorID, airQualityMsg.Value, airQualityMsg.Unit)
 
         // Send the SQL statement to RQLite
-        if err := SaveToRQLite([]byte(query)); err != nil {
+        if err := SaveToRQLite(query); err != nil {
             log.Println("Error sending SQL statement to RQLite:", err)
             return
         }
@@ -51,9 +49,9 @@ func (a *AirQualityReceiver) SaveIncomingAirQualityToDatabase() {
 }
 
 
-func SaveToRQLite(data []byte) error {
-    url := "http://localhost:4001/db/execute?timeout=2m"
-    reqBody := bytes.NewBuffer(data)
+func SaveToRQLite(data string) error {
+    url := "http://localhost:4001/db/execute?queue"
+    reqBody := bytes.NewBufferString(data)
 
     // Send POST request to RQLite server
     resp, err := http.Post(url, "application/json", reqBody)
