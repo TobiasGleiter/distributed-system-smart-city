@@ -35,7 +35,6 @@ func (a *AirQualityReceiver) SaveIncomingAirQualityToDatabase() {
         query := fmt.Sprintf(`
         ["INSERT INTO air_quality (sensor_id, value, unit) VALUES(\"%s\", %f, \"%s\") ON CONFLICT(sensor_id) DO UPDATE SET value = EXCLUDED.value, unit = EXCLUDED.unit"]`, airQualityMsg.SensorID, airQualityMsg.Value, airQualityMsg.Unit)
 
-        // Send the SQL statement to RQLite
         if err := SaveToRQLite(query); err != nil {
             log.Println("Error sending SQL statement to RQLite:", err)
             return
@@ -53,7 +52,6 @@ func SaveToRQLite(data string) error {
     url := "http://localhost:4001/db/execute?queue"
     reqBody := bytes.NewBufferString(data)
 
-    // Send POST request to RQLite server
     resp, err := http.Post(url, "application/json", reqBody)
     if err != nil {
         return fmt.Errorf("unexpected response status: %s", err)
@@ -63,7 +61,6 @@ func SaveToRQLite(data string) error {
 
     log.Printf("Response: %s", resp.Status)
 
-    // Check response status
     if resp.StatusCode != http.StatusOK {
         log.Printf("unexpected response status: %s", resp.Status)
         return fmt.Errorf("unexpected response status: %s", resp.Status)
