@@ -5,7 +5,7 @@ from sensors import AirQualitySensor
 
 async def main():
     try:
-        nats_client_connection = await nats.connect("demo.nats.io")
+        nats_client_connection = await nats.connect("nats://0.0.0.0:4222")
 
         air_quality_sensor = AirQualitySensor()
         await air_quality_sensor.set_client(nats_client_connection)
