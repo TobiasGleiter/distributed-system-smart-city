@@ -11,3 +11,11 @@ NATS Messages from Sensors look like this:
   "unit": "the unit"
 }
 ```
+
+## Build the go app
+
+Build the go for Linux:
+
+```bash
+env GOOS=linux GOARCH=arm go build -o <target_executable> <source_file>
+```
