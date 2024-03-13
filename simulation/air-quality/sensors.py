@@ -27,4 +27,6 @@ class AirQualitySensor(Sensor):
             "value": air_quality_value,
             "unit": "AQI"
         }
-        await self.client.publish("air_quality", json.dumps(message).encode())
+        self.client.publish("air_quality", payload=json.dumps(
+            message).encode(), qos=1, retain=False)
+        print("Published air quality:", air_quality_value)

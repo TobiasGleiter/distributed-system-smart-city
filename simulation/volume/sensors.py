@@ -27,4 +27,6 @@ class VolumeSensor(Sensor):
             "value": volume_value,
             "unit": "VU"
         }
-        await self.client.publish("volume", json.dumps(message).encode())
+        self.client.publish("temeperature", payload=json.dumps(
+            message).encode(), qos=1, retain=False)
+        print("Published air quality:", volume_value)

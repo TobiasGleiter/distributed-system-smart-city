@@ -27,4 +27,6 @@ class TemperatureSensor(Sensor):
             "value": temperature_value,
             "unit": "Celsius"
         }
-        await self.client.publish("temperature", json.dumps(message).encode())
+        self.client.publish("temeperature", payload=json.dumps(
+            message).encode(), qos=1, retain=False)
+        print("Published air quality:", temperature_value)

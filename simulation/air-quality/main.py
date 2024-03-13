@@ -1,14 +1,16 @@
 import asyncio
-import nats
+from mqtt import setup_mqtt_client
+
+
 from sensors import AirQualitySensor
 
 
 async def main():
     try:
-        nats_client_connection = await nats.connect("nats://0.0.0.0:4222")
+        mqtt_client = setup_mqtt_client()
 
         air_quality_sensor = AirQualitySensor()
-        await air_quality_sensor.set_client(nats_client_connection)
+        await air_quality_sensor.set_client(mqtt_client)
 
         while True:
             await air_quality_sensor.send()
@@ -18,9 +20,6 @@ async def main():
         print("Keyboard interrupt detected. Exiting...")
     except Exception as e:
         print(f"An error occurred: {e}")
-    finally:
-        if nats_client_connection.is_connected:
-            await nats_client_connection.close()
 
 
 if __name__ == '__main__':
