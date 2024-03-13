@@ -13,5 +13,8 @@ This project utilizes NATS, rqlite, and Python to establish a distributed smart 
 - **NATS:** Acts as a message broker, handling requests on each device.
 - **Rqlite:** Manages database access, essential in a distributed system where various applications access the database.
 - **Python:** Chosen for its simplicity, making entry into the codebase easy.
+- **Go**
 
 Besides that we using Docker to scale the number of sensors (simulated)
+
+![NATS RQLite Cluster Overview with 3 Raspberries](https://github.com/TobiasGleiter/smart-city/blob/main/cluster/images/nats-rqlite-cluster.png)

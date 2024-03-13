@@ -9,7 +9,7 @@ import (
 
 
 func main() {
-    nc, err := config.ConnectToNatsClient()
+    nc, err := config.ConnectToNatsServer()
     if err != nil {
         log.Fatal(err)
     }

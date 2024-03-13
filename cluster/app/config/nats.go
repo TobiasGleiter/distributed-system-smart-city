@@ -1,9 +1,13 @@
 package config
 
-import "github.com/nats-io/nats.go"
+import (
+    "strings"
 
+    "github.com/nats-io/nats.go"
+)
 
-func ConnectToNatsClient()( *nats.Conn, error) {
-    nc, err := nats.Connect("demo.nats.io")
+func ConnectToNatsServer()( *nats.Conn, error) {
+    servers := []string{"nats://0.0.0.0:4244", "nats://0.0.0.0:4245", "nats://0.0.0.0:4246"}
+    nc, err := nats.Connect(strings.Join(servers, ","))
     return nc, err
 }
