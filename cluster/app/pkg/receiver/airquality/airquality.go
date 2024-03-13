@@ -1,13 +1,10 @@
 package airquality
 
 import (
-    "bytes"
     "log"
-    "net/http"
-    "fmt"
     "encoding/json"
-
-    "github.com/nats-io/nats.go"
+    
+    MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
 type AirQualityMessage struct {
@@ -17,54 +14,25 @@ type AirQualityMessage struct {
 }
 
 type AirQualityReceiver struct {
-    client       *nats.Conn
+    client MQTT.Client
 }
 
-func (a *AirQualityReceiver) SetClient(nc *nats.Conn) {
-    a.client = nc
+func (a *AirQualityReceiver) SetClient(client MQTT.Client) {
+    a.client = client
 }
 
 func (a *AirQualityReceiver) SaveIncomingAirQualityToDatabase() {
-    _, err := a.client.QueueSubscribe("air_quality", "airquality_nodes", func(msg *nats.Msg) {
+    token := a.client.Subscribe("air_quality", 0, func(client MQTT.Client, msg MQTT.Message) {
         var airQualityMsg AirQualityMessage
-        if err := json.Unmarshal(msg.Data, &airQualityMsg); err != nil {
+        if err := json.Unmarshal(msg.Payload(), &airQualityMsg); err != nil {
             log.Println("Error parsing JSON message:", err)
             return
         }
 
-        query := fmt.Sprintf(`
-        ["INSERT INTO air_quality (sensor_id, value, unit) VALUES(\"%s\", %f, \"%s\") ON CONFLICT(sensor_id) DO UPDATE SET value = EXCLUDED.value, unit = EXCLUDED.unit"]`, airQualityMsg.SensorID, airQualityMsg.Value, airQualityMsg.Unit)
+        log.Println("Message from Sensor:", airQualityMsg.SensorID)
 
-        if err := SaveToRQLite(query); err != nil {
-            log.Println("Error sending SQL statement to RQLite:", err)
-            return
-        }
-
-        log.Printf("Worker: Saved air quality message to database: %s\n", string(msg.Data))
     })
-    if err != nil {
-        log.Fatal(err)
+    if token.Wait() && token.Error() != nil {
+        log.Fatal(token.Error())
     }
-}
-
-
-func SaveToRQLite(data string) error {
-    url := "http://localhost:4001/db/execute?queue"
-    reqBody := bytes.NewBufferString(data)
-
-    resp, err := http.Post(url, "application/json", reqBody)
-    if err != nil {
-        return fmt.Errorf("unexpected response status: %s", err)
-
-    }
-    defer resp.Body.Close()
-
-    log.Printf("Response: %s", resp.Status)
-
-    if resp.StatusCode != http.StatusOK {
-        log.Printf("unexpected response status: %s", resp.Status)
-        return fmt.Errorf("unexpected response status: %s", resp.Status)
-    }
-
-    return nil
 }

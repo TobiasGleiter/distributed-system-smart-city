@@ -9,17 +9,21 @@ import (
 
 
 func main() {
-    nc, err := config.ConnectToNatsServer()
+    mqttClient, err := config.ConnectToMqttServer()
     if err != nil {
         log.Fatal(err)
     }
-    defer nc.Close()
+    defer mqttClient.Disconnect(250)
 
 	airQualityReceiver := &airquality.AirQualityReceiver{}
-    airQualityReceiver.SetClient(nc)
+    airQualityReceiver.SetClient(mqttClient)
+
+
+    // Use a WaitGroup to keep track of goroutines
+
     airQualityReceiver.SaveIncomingAirQualityToDatabase()
+   
+    log.Println("Main function is running...")
 
-
-
-	select {}
+    select {}
 }
