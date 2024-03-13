@@ -25,8 +25,8 @@ class VolumeSensor(Sensor):
         message = {
             "sensor_id": self.sensor_id,
             "value": volume_value,
-            "unit": "VU"
+            "unit": "db"
         }
-        self.client.publish("temeperature", payload=json.dumps(
+        self.client.publish("volume", payload=json.dumps(
             message).encode(), qos=1, retain=False)
         print("Published air quality:", volume_value)

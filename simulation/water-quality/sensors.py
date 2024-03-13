@@ -25,8 +25,8 @@ class WaterQualitySensor(Sensor):
         message = {
             "sensor_id": self.sensor_id,
             "value": water_quality_value,
-            "unit": "VU"
+            "unit": "%"
         }
-        self.client.publish("temeperature", payload=json.dumps(
+        self.client.publish("water_quality", payload=json.dumps(
             message).encode(), qos=1, retain=False)
         print("Published air quality:", water_quality_value)
