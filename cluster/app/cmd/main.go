@@ -19,8 +19,6 @@ func main() {
     airQualityReceiver.SetClient(mqttClient)
 
 
-    // Use a WaitGroup to keep track of goroutines
-
     airQualityReceiver.SaveIncomingAirQualityToDatabase()
    
     log.Println("Main function is running...")

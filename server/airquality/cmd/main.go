@@ -68,7 +68,6 @@ func (mh *MessageHandler) messageHandler(client MQTT.Client, msg MQTT.Message) {
     }
 
     filter := bson.M{"sensor_id": airQualityMsg.SensorID}
-
     update := bson.M{"$set": airQualityMsg}
 
     ctx := context.Background()
