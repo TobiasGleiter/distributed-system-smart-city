@@ -18,10 +18,11 @@ var (
 	databaseName string
 )
 
-func Initialize(mongoClient *mongo.Client, dbName string) {
-	client = mongoClient
-	databaseName = dbName
-}
+const (
+	database = "sensor"
+	mongoCollection  = "air_quality"
+)
+
 
 type SensorData struct {
 	SensorID string  `json:"sensor_id"`
@@ -29,7 +30,11 @@ type SensorData struct {
 	Unit     string  `json:"unit"`
 }
 
-func UpdateSensorData(w http.ResponseWriter, r *http.Request, collectionName string) {
+func Initialize(mongoClient *mongo.Client) {
+	client = mongoClient
+}
+
+func UpdateSensorData(w http.ResponseWriter, r *http.Request) {
 	var newSensorData SensorData
 	err := json.NewDecoder(r.Body).Decode(&newSensorData)
 	if err != nil {
@@ -37,7 +42,7 @@ func UpdateSensorData(w http.ResponseWriter, r *http.Request, collectionName str
 		return
 	}
 
-	collection := client.Database(databaseName).Collection(collectionName)
+	collection := client.Database(database).Collection(mongoCollection)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -50,6 +55,6 @@ func UpdateSensorData(w http.ResponseWriter, r *http.Request, collectionName str
         return
     }
 
-	fmt.Println("Updated sensor data in", collectionName, "collection:", newSensorData.SensorID)
+	fmt.Println("Updated sensor data in", mongoCollection, "collection:", newSensorData.SensorID)
 	w.WriteHeader(http.StatusOK)
 }
