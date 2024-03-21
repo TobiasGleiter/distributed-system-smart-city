@@ -18,3 +18,5 @@ This project utilizes NATS, rqlite, and Python to establish a distributed smart 
 Besides that we using Docker to scale the number of sensors (simulated)
 
 ![NATS RQLite Cluster Overview with 3 Raspberries](https://github.com/TobiasGleiter/smart-city/blob/main/cluster/images/nats-rqlite-cluster.png)
+
+Backup
