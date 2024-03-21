@@ -5,9 +5,14 @@ import (
 	"encoding/json"
 )
 
+type Node struct {
+    Port string `json:"port"`
+}
+
 type Config struct {
 	Port string `json:"port"`
     MongoURI string `json:"mongo_uri"`
+    Nodes []Node `json:"nodes"`
 }
 
 func LoadConfig(filename string) (Config, error) {
