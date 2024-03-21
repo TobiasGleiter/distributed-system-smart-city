@@ -1,17 +1,14 @@
-from mqtt import setup_mqtt_client
 import asyncio
 from sensors import VolumeSensor
 
 
 async def main():
     try:
-        mqtt_client = setup_mqtt_client()
-
-        volume_sensor = VolumeSensor()
-        await volume_sensor.set_client(mqtt_client)
+        sensor = VolumeSensor()
+        sensor.set_send_url("http://localhost:8080/sensor/volume/add")
 
         while True:
-            await volume_sensor.send()
+            sensor.send()
             await asyncio.sleep(5)
 
     except KeyboardInterrupt:
