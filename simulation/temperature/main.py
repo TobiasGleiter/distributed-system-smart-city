@@ -1,17 +1,14 @@
 import asyncio
-from mqtt import setup_mqtt_client
 from sensors import TemperatureSensor
 
 
 async def main():
     try:
-        mqtt_client = setup_mqtt_client()
-
-        temperature_sensor = TemperatureSensor()
-        await temperature_sensor.set_client(mqtt_client)
+        sensor = TemperatureSensor()
+        sensor.set_send_url("http://localhost:8080/sensor/temperature/add")
 
         while True:
-            await temperature_sensor.send()
+            sensor.send()
             await asyncio.sleep(5)
 
     except KeyboardInterrupt:
