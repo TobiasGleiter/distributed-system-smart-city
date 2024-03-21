@@ -1,19 +1,14 @@
 import asyncio
-from mqtt import setup_mqtt_client
-
-
 from sensors import AirQualitySensor
 
 
 async def main():
     try:
-        mqtt_client = setup_mqtt_client()
-
-        air_quality_sensor = AirQualitySensor()
-        await air_quality_sensor.set_client(mqtt_client)
+        sensor = AirQualitySensor()
+        sensor.set_send_url("http://localhost:8080/sensor/air_quality/add")
 
         while True:
-            await air_quality_sensor.send()
+            sensor.send()
             await asyncio.sleep(5)
 
     except KeyboardInterrupt:
