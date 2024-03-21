@@ -3,16 +3,16 @@ package config
 import (
 	"os"
 	"encoding/json"
+
+	"server/main/models"
 )
 
-type Node struct {
-    Port string `json:"port"`
-}
-
 type Config struct {
+    ID      string `json:"ID"`
+    Coordinator bool   `json:"coordinator"`
 	Port string `json:"port"`
     MongoURI string `json:"mongo_uri"`
-    Nodes []Node `json:"nodes"`
+    Nodes []models.Node `json:"nodes"`
 }
 
 func LoadConfig(filename string) (Config, error) {
