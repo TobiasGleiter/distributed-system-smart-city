@@ -1,82 +1,29 @@
 package bully
 
 import (
-	"sync"
-    "bytes"
     "fmt"
-    "net/http"
+    "time"
+	"net/http"
 )
 
-type Node struct {
-    ID   int
-    Port string
-    Alive bool
+func HandleHeartbeatAsLeader(w http.ResponseWriter, r *http.Request) { 
+    w.WriteHeader(http.StatusOK)
 }
 
-type Bully struct {
-    Nodes    map[int]*Node
-    CoordinatorID int
-    mutex    sync.Mutex
-}
+func CheckHeartbeatFromLeader(leaderPORT int) {
+    ticker := time.NewTicker(5 * time.Second)
+    defer ticker.Stop()
 
-func NewBully(nodes []Node) *Bully {
-    bully := &Bully{
-        Nodes: make(map[int]*Node),
-    }
-
-    for _, node := range nodes {
-        bully.Nodes[node.ID] = &node
-    }
-
-    return bully
-}
-
-func (b *Bully) StartElection() {
-    b.mutex.Lock()
-    defer b.mutex.Unlock()
-
-    highestID := b.findHighestID()
-    for id, node := range b.Nodes {
-        if id > b.CoordinatorID && node.Alive {
-			// Send election message to nodes with higher IDs
-			url := fmt.Sprintf("http://localhost:%s/message", node.Port)
-			message := "ELECTION" // Example message, you can customize it
-			_, err := http.Post(url, "text/plain", bytes.NewBufferString(message))
-			if err != nil {
-				fmt.Printf("Failed to send election message to node %d: %v\n", id, err)
-				continue
-			}
-			fmt.Printf("Election message sent to node %d successfully\n", id)
+    for {
+        select {
+        case <-ticker.C:
+            _, err := http.Get(fmt.Sprintf("http://localhost:%d/bully/heartbeat", leaderPORT))
+            if err != nil {
+                fmt.Println("Leader is not alive start election!")
+            } else {
+                fmt.Println(fmt.Sprintf("Leader on port %d is alive", leaderPORT))
+            }
         }
-    }
-
-    // If the node is the highest ID, it becomes the coordinator
-    if highestID == b.CoordinatorID {
-        b.becomeCoordinator()
-    }
-}
-
-func (b *Bully) findHighestID() int {
-    maxID := 0
-    for id := range b.Nodes {
-        if id > maxID {
-            maxID = id
-        }
-    }
-    return maxID
-}
-
-func (b *Bully) becomeCoordinator() {
-    // Update coordinator ID
-    b.CoordinatorID = b.findHighestID()
-    // Broadcast coordinator message to other nodes
-    // Here you should implement the logic to send coordinator message to other nodes
-}
-
-func (b *Bully) HandleCoordinatorMessage(senderID int) {
-    // Update coordinator ID if received coordinator ID is higher
-    if senderID > b.CoordinatorID {
-        b.CoordinatorID = senderID
     }
 }
 

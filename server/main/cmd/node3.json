@@ -1,0 +1,10 @@
+{
+    "ID": 3,
+    "leader": 1,
+    "port": 8082,
+    "mongo_uri": "mongodb://localhost:27017",
+    "nodes": [
+       { "ID": 1,"port": 8080},
+       { "ID": 2,"port": 8081}
+    ]
+}

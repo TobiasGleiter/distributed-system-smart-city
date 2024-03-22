@@ -1,49 +1,28 @@
 package main
-
-import (
-	"encoding/json"
-	"fmt"
+ import (
 	"log"
 	"net/http"
-	"sync"
-	"time"
-	"bytes"
+	"fmt"
+	"flag"
 
 	"server/main/config"
 	"server/main/pkg/mongodb"
 	"server/main/pkg/sensor"
 	//"server/main/models"
-	//"server/main/pkg/bully"
+	"server/main/pkg/bully"
 )
-
-type Message struct {
-	ID        string    `json:"id"`
-	Type      string    `json:"type"`
-	Sender    string    `json:"sender"`
-	Timestamp time.Time `json:"timestamp"`
-}
-
-type NodeInfo struct {
-	ID   string `json:"ID"`
-	Port string `json:"port"`
-}
-
-const (
-	ElectionMsg = "ELECTION"
-	AnswerMsg   = "ANSWER"
-	CoordinatorMsg = "COORDINATOR"
-)
-
 
 var (
-	coordinatorID  string
-	nodeID         string
-	nodes          []string
-	mutex          sync.Mutex
+	NodeID int
+	LeaderID int
+	LeaderPort int
 )
 
 func main() {
-    config, err := config.LoadConfig("config.json")
+    configFile := flag.String("config", "config.json", "Path to the configuration file")
+    flag.Parse()
+
+    config, err := config.LoadConfig(*configFile)
     if err != nil {
         log.Fatal(err)
     }
@@ -53,117 +32,30 @@ func main() {
 	client := mongodb.GetClient()
 	sensor.Initialize(client)
 
+	NodeID = config.ID
+	LeaderID = config.Leader
+	LeaderPort = 8080
+
+	if NodeID == LeaderID {
+		fmt.Println("I am the Leader! Thats me:", NodeID)
+	} else {
+		fmt.Println(fmt.Sprintf("I am worker %d and the leader is %d", NodeID, LeaderID))
+
+		// Check if Leader is alive (CheckHeartbeat)
+		go bully.CheckHeartbeatFromLeader(LeaderPort)
+	}
+
+
 	http.HandleFunc("/sensor/air_quality/add", sensor.UpdateSensorData)
+	http.HandleFunc("/bully/heartbeat", bully.HandleHeartbeatAsLeader)
 	//http.HandleFunc("/message", bully.HandleMessage)
 
 
 	go func() {
-		http.HandleFunc("/election", handleElection)
-		http.HandleFunc("/answer", handleAnswer)
-		http.HandleFunc("/coordinator", handleCoordinator)
-		log.Fatal(http.ListenAndServe(":8080", nil))
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), nil))
 	}()
 
 	select {}
-}
-
-func handleElection(w http.ResponseWriter, r *http.Request) {
-	var msg Message
-	err := json.NewDecoder(r.Body).Decode(&msg)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	fmt.Println("Received election message from", msg.Sender)
-
-	if msg.ID > nodeID {
-		// Respond with an answer message
-		sendMessage(msg.Sender, AnswerMsg)
-	} else {
-		// Initiate own election
-		go startElection()
-	}
-}
-
-func handleAnswer(w http.ResponseWriter, r *http.Request) {
-	var msg Message
-	err := json.NewDecoder(r.Body).Decode(&msg)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	fmt.Println("Received answer message from", msg.Sender)
-}
-
-func handleCoordinator(w http.ResponseWriter, r *http.Request) {
-	var msg Message
-	err := json.NewDecoder(r.Body).Decode(&msg)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	fmt.Println("Received coordinator message from", msg.Sender)
-	coordinatorID = msg.Sender
-}
-
-func sendMessage(target, msgType string) {
-	msg := Message{
-		ID:        nodeID,
-		Type:      msgType,
-		Sender:    nodeID,
-		Timestamp: time.Now(),
-	}
-
-	jsonMsg, err := json.Marshal(msg)
-	if err != nil {
-		fmt.Println("Error marshaling message:", err)
-		return
-	}
-
-	resp, err := http.Post(fmt.Sprintf("http://%s/%s", target, msgType), "application/json", bytes.NewBuffer(jsonMsg))
-	if err != nil {
-		fmt.Println("Error sending message:", err)
-		return
-	}
-	defer resp.Body.Close()
-}
-
-func startElection() {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	fmt.Println("Starting election...")
-	highestID := nodeID
-	for _, n := range nodes {
-		if n > highestID {
-			highestID = n
-		}
-	}
-
-	if highestID == nodeID {
-		// Become the coordinator
-		coordinatorID = nodeID
-		fmt.Println("I am the coordinator")
-		broadcastCoordinator()
-	} else {
-		// Send election messages to higher IDs
-		for _, n := range nodes {
-			if n > nodeID {
-				sendMessage(n, ElectionMsg)
-			}
-		}
-	}
-}
-
-func broadcastCoordinator() {
-	for _, n := range nodes {
-		if n != nodeID {
-			sendMessage(n, CoordinatorMsg)
-		}
-	}
 }
 
 

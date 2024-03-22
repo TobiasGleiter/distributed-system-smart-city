@@ -8,9 +8,9 @@ import (
 )
 
 type Config struct {
-    ID      string `json:"ID"`
-    Coordinator bool   `json:"coordinator"`
-	Port string `json:"port"`
+    ID      int `json:"ID"`
+    Leader int   `json:"leader"`
+	Port int `json:"port"`
     MongoURI string `json:"mongo_uri"`
     Nodes []models.Node `json:"nodes"`
 }
