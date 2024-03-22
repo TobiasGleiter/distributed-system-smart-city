@@ -48,8 +48,11 @@ func main() {
 	}
 
 	http.HandleFunc("/sensor/air_quality/add", sensor.UpdateSensorData)
+	
 	http.HandleFunc("/bully/heartbeat", bully.HandleHeartbeatAsLeader)
 	http.HandleFunc("/bully/election/message", bully.HandleElectionMessage)
+	http.HandleFunc("/bully/new_leader", bully.HandleNewLeaderNotification)
+
 
 	go func() {
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), nil))

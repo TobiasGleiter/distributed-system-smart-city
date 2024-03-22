@@ -11,6 +11,7 @@ import (
 )
 
 var (
+    LeaderID int
     NodeID int
     NodePort int
     Nodes []models.Node
@@ -40,7 +41,6 @@ func CheckHeartbeatFromLeader(leaderPORT int) {
 }
 
 func StartElection() {
-    // Get higher-ranked nodes
     higherNodes := GetHigherNodes()
 
     // Send election messages to higher-ranked nodes
@@ -91,7 +91,7 @@ func sendElectionMessage(node models.Node) {
         return
     }
 
-    fmt.Println("Election message sent successfully")
+    fmt.Println("Election message sent successfully to port", node.Port)
 }
 
 func HandleElectionMessage(w http.ResponseWriter, r *http.Request) {
@@ -104,15 +104,87 @@ func HandleElectionMessage(w http.ResponseWriter, r *http.Request) {
     }
 
     // Handle the election message
-    // Check if the sender's ID is higher than the local node's ID
-    // If yes, respond to the election message by sending an "OK" response
-    // Otherwise, ignore the election message
+    if electionMsg.SenderID < NodeID {
+        // If sender's ID is lower than local node's ID, respond with "OK"
+        fmt.Fprint(w, "OK")
+    } else if electionMsg.SenderID > NodeID {
+        // If sender's ID is higher than local node's ID, start an election
+        StartElection()
+        fmt.Fprint(w, "OK")
+    } else {
+        // If sender's ID is the same as local node's ID, handle as needed
+        // For example, you can start an election or respond with "OK"
+        // Here, we respond with "OK"
+        fmt.Fprint(w, "OK")
+    }
 
-    // Example response
-    fmt.Fprint(w, "OK")
+    if electionMsg.SenderID > NodeID && len(GetHigherNodes()) == 0 {
+        // Declare this node as the leader
+        LeaderID = NodeID
+        fmt.Println("I am the leader now:", NodeID)
+
+        // Notify all other nodes about the new leader
+        NotifyNewLeader()
+    }
 }
 
 type ElectionMessage struct {
     SenderID   int `json:"sender_id"`
     SenderPort int `json:"sender_port"`
 }
+
+type NotificationMessage struct {
+    LeaderID int `json:"leader_id"`
+}
+
+func NotifyNewLeader() {
+    for _, node := range Nodes {
+        if node.ID != NodeID { // Skip sending notification to oneself
+            // Construct the notification message
+            notificationMsg := NotificationMessage{
+                LeaderID: LeaderID,
+            }
+
+            // Convert the notification message to JSON
+            jsonData, err := json.Marshal(notificationMsg)
+            if err != nil {
+                fmt.Println("Error marshalling notification message:", err)
+                return
+            }
+
+            // Send the notification message via HTTP POST request
+            resp, err := http.Post(fmt.Sprintf("http://localhost:%d/bully/new_leader", node.Port), "application/json", bytes.NewBuffer(jsonData))
+            if err != nil {
+                fmt.Println("Error sending notification message to node:", err)
+                continue
+            }
+            defer resp.Body.Close()
+
+            // Check the response status
+            if resp.StatusCode != http.StatusOK {
+                fmt.Println("Error: unexpected response status from node:", resp.Status)
+                continue
+            }
+
+            fmt.Println("Notification message sent to node", node.ID)
+        }
+    }
+}
+
+func HandleNewLeaderNotification(w http.ResponseWriter, r *http.Request) {
+    // Decode the incoming JSON notification
+    var notificationMsg NotificationMessage
+    decoder := json.NewDecoder(r.Body)
+    if err := decoder.Decode(&notificationMsg); err != nil {
+        fmt.Println("Error decoding new leader notification:", err)
+        http.Error(w, "Failed to decode new leader notification", http.StatusBadRequest)
+        return
+    }
+
+    // Update the local LeaderID variable with the new leader's ID
+    LeaderID = notificationMsg.LeaderID
+
+    // Respond with a success message
+    fmt.Fprint(w, "Leader updated successfully")
+}
+
