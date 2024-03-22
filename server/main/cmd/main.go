@@ -41,15 +41,15 @@ func main() {
 	} else {
 		fmt.Println(fmt.Sprintf("I am worker %d and the leader is %d", NodeID, LeaderID))
 
-		// Check if Leader is alive (CheckHeartbeat)
+		bully.NodeID = config.ID
+		bully.NodePort = config.Port
+		bully.Nodes = config.Nodes
 		go bully.CheckHeartbeatFromLeader(LeaderPort)
 	}
 
-
 	http.HandleFunc("/sensor/air_quality/add", sensor.UpdateSensorData)
 	http.HandleFunc("/bully/heartbeat", bully.HandleHeartbeatAsLeader)
-	//http.HandleFunc("/message", bully.HandleMessage)
-
+	http.HandleFunc("/bully/election/message", bully.HandleElectionMessage)
 
 	go func() {
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), nil))
