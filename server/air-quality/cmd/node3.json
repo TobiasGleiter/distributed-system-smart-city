@@ -1,0 +1,10 @@
+{
+    "id": 3,
+    "leader": 1,
+    "ip": "localhost:8082",
+    "mongo_uri": "mongodb://localhost:27017",
+    "nodes": [
+       { "id": 1,"ip": "localhost:8080"},
+       { "id": 2,"ip": "localhost:8081"}
+    ]
+}

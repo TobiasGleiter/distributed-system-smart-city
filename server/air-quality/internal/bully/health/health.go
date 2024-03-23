@@ -6,31 +6,56 @@ import (
 	"time"
 
 	"server/air-quality/models"
+	"server/air-quality/shared"
+	"server/air-quality/internal/bully/election"
 )
 
 func HandleHealthOfNode(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "OK")
 }
 
-func Check(node models.Config) {
-    ticker := time.NewTicker(5 * time.Second)
-    defer ticker.Stop()
-
+func CheckHealthOfLeader() {
     for {
-        select {
-        case <-ticker.C:
-            resp, err := http.Get(fmt.Sprintf("http://%s/bully/health", node.IP))
-            if err != nil {
-                fmt.Printf("Error healt check Node %d (%s)\n", node.ID, node.IP)
-                continue
-            }
-            defer resp.Body.Close()
+        currentLeader := shared.GetLeader()
 
-            if resp.StatusCode != http.StatusOK {
-                fmt.Printf("Node %d (%s) responded with status code: %d\n", node.ID, node.IP, resp.StatusCode)
+        if currentLeader != shared.NodeID {
+            var leaderNode models.Node
+            for _, node := range election.Nodes {
+                if node.ID == currentLeader {
+                    leaderNode = node
+                    break
+                }
+            }
+
+            fmt.Println("Leader", currentLeader)
+            if err := checkLeaderHealth(leaderNode); err != nil {
+                fmt.Println("Leader is not alive. Starting election...")
+                election.StartElection()
+
+                time.Sleep(5 * time.Second)
+
+                newLeader := shared.GetLeader()
+                fmt.Println("New Leader:", newLeader)
             } else {
-                fmt.Printf("Node %d is healthy\n", node.ID)
+                fmt.Println("Leader is alive")
             }
         }
+        time.Sleep(7 * time.Second)
     }
+}
+
+func checkLeaderHealth(node models.Node) error {
+    resp, err := http.Get(fmt.Sprintf("http://%s/bully/health", node.IP))
+    if err != nil {
+        fmt.Println("Error checking leader health:", err)
+        return err
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK {
+        fmt.Printf("Node %d (%s) responded with status code: %d\n", node.ID, node.IP, resp.StatusCode)
+        return fmt.Errorf("leader not healthy")
+    }
+
+    return nil
 }
