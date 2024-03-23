@@ -4,6 +4,9 @@
     "mongo_uri": "mongodb://localhost:27017",
     "nodes": [
        { "id": 1,"ip": "localhost:8080"},
-       { "id": 3,"ip": "localhost:8082"}
+       { "id": 3,"ip": "localhost:8082"},
+       { "id": 4,"ip": "localhost:8083"},
+       { "id": 5,"ip": "localhost:8084"},
+       { "id": 6,"ip": "localhost:8085"}
     ]
 }
