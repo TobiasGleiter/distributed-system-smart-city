@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"flag"
 	"log"
-	"time"
 
 	"server/air-quality/config"
 	"server/air-quality/models"
 	"server/air-quality/shared"
 	"server/air-quality/internal/bully/health"
 	"server/air-quality/internal/bully/election"
+	"server/air-quality/internal/sensor/airquality"
 )
 
 
@@ -33,25 +33,16 @@ func main() {
 	shared.SetLeader(100)
 
 
-	go DoTasks()
 	go health.CheckHealthOfLeader()
 
 
 	http.HandleFunc("/bully/health", health.HandleHealthOfNode)
 	http.HandleFunc("/bully/election", election.HandleElectionRequest)
+	http.HandleFunc("/sensor/airquality", airquality.HandleAirQualityRequest)
 
 	fmt.Println("Server listening on ip", cfg.IP)
 	if err := http.ListenAndServe(cfg.IP, nil); err != nil {
 		fmt.Println("Server error:", err)
-	}
-}
-
-func DoTasks() {
-	for {
-		if shared.IsLeader() {
-			fmt.Println("I am doing tasks...")
-		}
-		time.Sleep(2 * time.Second)
 	}
 }
 

@@ -10,14 +10,6 @@ import (
 	"server/air-quality/internal/bully/election"
 )
 
-type HealthChecker interface {
-    CheckHealth(url string) (*http.Response, error)
-}
-
-type LeaderInfoProvider interface {
-    GetLeader() int
-}
-
 func HandleHealthOfNode(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "OK")
 }
@@ -35,7 +27,7 @@ func CheckHealthOfLeader() {
                 }
             }
 
-            if err := checkLeaderHealth(leaderNode); err != nil {
+            if err := checkNodeHealth(leaderNode); err != nil {
                 fmt.Println("Leader is not alive. Starting election...")
                 election.StartElection()
 
@@ -51,7 +43,7 @@ func CheckHealthOfLeader() {
     }
 }
 
-func checkLeaderHealth(node models.Node) error {
+func checkNodeHealth(node models.Node) error {
     resp, err := http.Get(fmt.Sprintf("http://%s/bully/health", node.IP))
     if err != nil {
         fmt.Println("Error checking leader health:", err)
