@@ -5,14 +5,20 @@ import (
 	"net/http"
 	"flag"
 	"log"
+	"context"
 
 	"server/air-quality/config"
 	"server/air-quality/models"
 	"server/air-quality/shared"
+	"server/air-quality/pkg/db"
 	"server/air-quality/internal/bully/health"
 	"server/air-quality/internal/bully/election"
 	"server/air-quality/internal/sensor/airquality"
 )
+
+type YourService struct {
+	db db.MongoDB
+}
 
 
 func main() {
@@ -23,6 +29,14 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
+
+	ctx := context.Background()
+	mongoURI := cfg.MongoURI
+	mongoClient := db.NewMongoDBClient()
+	if err := mongoClient.Connect(ctx, mongoURI); err != nil {
+		fmt.Println("MongoDB error:", err)
+	}
+	defer mongoClient.Disconnect(ctx)
 
 	var nodes []models.Node
 	for _, node := range cfg.Nodes {
@@ -38,7 +52,8 @@ func main() {
 
 	http.HandleFunc("/bully/health", health.HandleHealthOfNode)
 	http.HandleFunc("/bully/election", election.HandleElectionRequest)
-	http.HandleFunc("/sensor/airquality", airquality.HandleAirQualityRequest)
+
+	http.HandleFunc("/sensor/air_quality", airquality.PostAirQualityHandler(mongoClient))
 
 	fmt.Println("Server listening on ip", cfg.IP)
 	if err := http.ListenAndServe(cfg.IP, nil); err != nil {
