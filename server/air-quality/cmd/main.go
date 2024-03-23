@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"flag"
 	"log"
+	"time"
 
 	"server/air-quality/config"
 	"server/air-quality/models"
@@ -23,8 +24,6 @@ func main() {
         log.Fatal(err)
     }
 
-	// bully/election
-	// Convert nodess to []models.Node
 	var nodes []models.Node
 	for _, node := range cfg.Nodes {
 		nodes = append(nodes, models.Node{ID: node.ID, IP: node.IP})
@@ -34,6 +33,7 @@ func main() {
 	shared.SetLeader(100)
 
 
+	go DoTasks()
 	go health.CheckHealthOfLeader()
 
 
@@ -46,6 +46,14 @@ func main() {
 	}
 }
 
+func DoTasks() {
+	for {
+		if shared.IsLeader() {
+			fmt.Println("I am doing tasks...")
+		}
+		time.Sleep(2 * time.Second)
+	}
+}
 
 
 

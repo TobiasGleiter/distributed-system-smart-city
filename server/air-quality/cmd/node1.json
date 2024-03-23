@@ -1,6 +1,5 @@
 {
     "id": 1,
-    "leader": 1,
     "ip": "localhost:8080",
     "mongo_uri": "mongodb://localhost:27017",
     "nodes": [

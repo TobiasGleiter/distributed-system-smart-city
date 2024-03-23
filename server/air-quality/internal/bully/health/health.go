@@ -10,6 +10,14 @@ import (
 	"server/air-quality/internal/bully/election"
 )
 
+type HealthChecker interface {
+    CheckHealth(url string) (*http.Response, error)
+}
+
+type LeaderInfoProvider interface {
+    GetLeader() int
+}
+
 func HandleHealthOfNode(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "OK")
 }

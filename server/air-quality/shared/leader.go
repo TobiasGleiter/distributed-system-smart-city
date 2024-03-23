@@ -15,3 +15,8 @@ func GetLeader() int {
 	return Leader
 }
 
+func IsLeader() bool {
+	return NodeID == Leader
+}
+
+
