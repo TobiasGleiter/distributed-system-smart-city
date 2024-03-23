@@ -21,15 +21,9 @@ var (
 func StartElection() {
 	fmt.Println("Start Election")
 
-	// nodes := getHigherNodes(NodeID, Nodes)
-	// fmt.Printf("Nodes: %+v\n", nodes)
-
-	// I am the Leader now
 	shared.SetLeader(shared.NodeID)
 	fmt.Printf("Election: I am the Leader now: %d\n", shared.Leader)
 
-	// Send message to all higher nodes
-	// I am the leader
 	for _, node := range Nodes {
 		sendElectionMessage(node)
 	}
@@ -57,13 +51,8 @@ func HandleElectionRequest(w http.ResponseWriter, r *http.Request) {
 
 }
 
-	// // use this for the election process
-	// nodes = getHigherNodes(cfg.ID, nodes)
-	// fmt.Printf("Nodes: %+v\n", nodes)
-
 func sendElectionMessage(node models.Node) {
-	// Implement logic to send an election message to a node
-	fmt.Println(fmt.Sprintf("Send Election Message to Node %d on port %s", node.ID, node.IP))
+	fmt.Println(fmt.Sprintf("Send Election Message to Node %d on ip %s", node.ID, node.IP))
 
 	// Construct the election message
 	electionMsg := ElectionMessage{

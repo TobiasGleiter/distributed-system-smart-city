@@ -27,7 +27,6 @@ func CheckHealthOfLeader() {
                 }
             }
 
-            fmt.Println("Leader", currentLeader)
             if err := checkLeaderHealth(leaderNode); err != nil {
                 fmt.Println("Leader is not alive. Starting election...")
                 election.StartElection()
@@ -37,7 +36,7 @@ func CheckHealthOfLeader() {
                 newLeader := shared.GetLeader()
                 fmt.Println("New Leader:", newLeader)
             } else {
-                fmt.Println("Leader is alive")
+                fmt.Println("Leader is alive:", shared.GetLeader())
             }
         }
         time.Sleep(7 * time.Second)

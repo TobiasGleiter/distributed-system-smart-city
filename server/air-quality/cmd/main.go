@@ -31,7 +31,7 @@ func main() {
 	}
 	shared.NodeID = cfg.ID
 	election.Nodes = nodes
-	shared.SetLeader(0)
+	shared.SetLeader(100)
 
 
 	go health.CheckHealthOfLeader()
