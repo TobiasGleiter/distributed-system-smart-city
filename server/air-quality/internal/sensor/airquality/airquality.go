@@ -26,14 +26,12 @@ type LeaderResponse struct {
 
 func PostAirQualityHandler(mc *db.MongoDBClient) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        // Decode the incoming JSON request
         var newSensorData SensorData
         if err := json.NewDecoder(r.Body).Decode(&newSensorData); err != nil {
             http.Error(w, err.Error(), http.StatusBadRequest)
             return
         }
 
-        // If the current instance is not the leader, respond with leader information
         if !shared.IsLeader() {
             response := LeaderResponse{
                 IsLeader: false,
@@ -44,7 +42,6 @@ func PostAirQualityHandler(mc *db.MongoDBClient) http.HandlerFunc {
             }
             response.LeaderID = shared.Leader
 
-            // Respond with leader information
             w.Header().Set("Content-Type", "application/json")
             if err := json.NewEncoder(w).Encode(response); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -53,7 +50,6 @@ func PostAirQualityHandler(mc *db.MongoDBClient) http.HandlerFunc {
             return
         }
 
-        // Process the incoming sensor data if the current instance is the leader
         ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
         defer cancel()
 
@@ -67,7 +63,6 @@ func PostAirQualityHandler(mc *db.MongoDBClient) http.HandlerFunc {
             return
         }
 
-        // Respond with success status
         response := LeaderResponse{IsLeader: true}
         w.Header().Set("Content-Type", "application/json")
         if err := json.NewEncoder(w).Encode(response); err != nil {

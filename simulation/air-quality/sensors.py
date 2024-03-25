@@ -33,6 +33,13 @@ class AirQualitySensor(Sensor):
         response = requests.post(
             self.send_url, data=json.dumps(message), headers=headers)
         if response.status_code == 200:
-            print("Published air quality:", air_quality_value)
+            response_data = json.loads(response.text)
+            if response_data["isLeader"] == False:
+                leaderID = response_data["leaderID"]
+                print(f"I am not the leader, the Leader is: {leaderID}")
+            else:
+                print(
+                    f"Published air quality to {self.send_url}: {air_quality_value}")
         else:
-            print("Failed to publish air quality:", response.status_code)
+            print(
+                f"Failed to publish air quality to {self.send_url}: {response.status_code}")
