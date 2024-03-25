@@ -19,6 +19,7 @@ import (
 
 
 func main() {
+	// without cache
 	configFile := flag.String("config", "config.json", "Path to the configuration file")
     flag.Parse()
 
