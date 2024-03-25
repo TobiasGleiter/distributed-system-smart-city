@@ -40,7 +40,7 @@ func main() {
 		nodes = append(nodes, models.Node{ID: node.ID, IP: node.IP})
 	}
 	shared.NodeID = cfg.ID
-	election.Nodes = nodes
+	shared.Nodes = nodes
 	shared.SetLeader(100)
 
 
@@ -53,6 +53,7 @@ func main() {
 	http.HandleFunc("/bully/election", election.HandleElectionRequest)
 
 	http.HandleFunc("/sensor/air_quality", airquality.PostAirQualityHandler(mongoClient))
+
 
 	fmt.Println("Server listening on ip", cfg.IP)
 	if err := http.ListenAndServe(cfg.IP, nil); err != nil {

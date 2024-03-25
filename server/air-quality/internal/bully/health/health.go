@@ -20,7 +20,7 @@ func CheckHealthOfLeader() {
 
         if currentLeader != shared.NodeID {
             var leaderNode models.Node
-            for _, node := range election.Nodes {
+            for _, node := range shared.GetNodes() {
                 if node.ID == currentLeader {
                     leaderNode = node
                     break

@@ -14,17 +14,13 @@ type ElectionMessage struct {
 	SenderID int `json:"ID"`
 }
 
-var (
-	Nodes []models.Node
-)
-
 func StartElection() {
 	fmt.Println("Start Election")
 
 	shared.SetLeader(shared.NodeID)
 	fmt.Printf("Election: I am the Leader now: %d\n", shared.Leader)
 
-	for _, node := range Nodes {
+	for _, node := range shared.GetNodes() {
 		sendElectionMessage(node)
 	}
 }

@@ -2,9 +2,14 @@
 
 package shared
 
+import (
+	"server/air-quality/models"
+)
+
 var (
 	Leader int
 	NodeID int
+	Nodes []models.Node
 )
 
 func SetLeader(newLeader int) {
@@ -17,6 +22,14 @@ func GetLeader() int {
 
 func IsLeader() bool {
 	return NodeID == Leader
+}
+
+func SetNodes(newNodes []models.Node) {
+	Nodes = newNodes
+}
+
+func GetNodes() []models.Node {
+	return Nodes
 }
 
 
