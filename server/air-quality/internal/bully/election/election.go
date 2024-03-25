@@ -41,7 +41,7 @@ func HandleElectionRequest(w http.ResponseWriter, r *http.Request) {
     // Handle the election message
     if electionMsg.SenderID > shared.NodeID {
 		shared.SetLeader(electionMsg.SenderID)
-		fmt.Println(fmt.Sprintf("The leader is now %d and I am (%d) a worker.", shared.Leader, shared.NodeID))
+		fmt.Println(fmt.Sprintf("The leader is now %d and I am (%d) a worker.", electionMsg.SenderID, shared.NodeID))
 		fmt.Fprint(w, "OK")
 
 	} else if electionMsg.SenderID < shared.NodeID {

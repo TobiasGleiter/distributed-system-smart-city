@@ -16,10 +16,6 @@ import (
 	"server/air-quality/internal/sensor/airquality"
 )
 
-type YourService struct {
-	db db.MongoDB
-}
-
 
 func main() {
 	configFile := flag.String("config", "config.json", "Path to the configuration file")
