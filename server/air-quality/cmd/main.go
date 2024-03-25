@@ -52,7 +52,9 @@ func main() {
 	http.HandleFunc("/bully/health", health.HandleHealthOfNode)
 	http.HandleFunc("/bully/election", election.HandleElectionRequest)
 
-	http.HandleFunc("/sensor/air_quality", airquality.PostAirQualityHandler(mongoClient))
+	http.HandleFunc("/sensor/air_quality", airquality.AirQualityHandler(mongoClient))
+
+	go airquality.SaveCachedDataToDB(mongoClient)
 
 
 	fmt.Println("Server listening on ip", cfg.IP)
