@@ -1,16 +1,16 @@
 import asyncio
 from sensors import AirQualitySensor
 import requests.exceptions
+import json
 
 
 async def main():
     try:
         sensor = AirQualitySensor()
-        cluster_ips = ["http://localhost:8080/sensor/air_quality",
-                       "http://localhost:8081/sensor/air_quality",
-                       "http://localhost:8082/sensor/air_quality",
-                       "http://localhost:8083/sensor/air_quality",
-                       "http://localhost:8084/sensor/air_quality"]
+
+        with open('config.json') as f:
+            config = json.load(f)
+            cluster_ips = config["cluster_ips"]
 
         while True:
             for cluster_ip in cluster_ips:
