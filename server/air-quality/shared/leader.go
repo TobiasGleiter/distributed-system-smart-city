@@ -1,5 +1,3 @@
-// In shared/leader.go
-
 package shared
 
 import (

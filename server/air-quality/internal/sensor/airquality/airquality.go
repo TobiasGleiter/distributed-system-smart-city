@@ -9,6 +9,7 @@ import (
     "fmt"
 
     "server/air-quality/pkg/db"
+    "server/air-quality/pkg/cpu"
 
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
@@ -55,7 +56,9 @@ func AirQualityHandler(mc *db.MongoDBClient) http.HandlerFunc {
     }
 }
 
-func SaveCachedDataToDB(mc *db.MongoDBClient) {
+func SaveCachedDataToDB(mc *db.MongoDBClient, cpuStats *cpu.Stats) {
+	go cpuStats.GetCPUUsage()
+
     ticker := time.NewTicker(1 * time.Minute)
     defer ticker.Stop()
     for {
@@ -71,6 +74,7 @@ func SaveCachedDataToDB(mc *db.MongoDBClient) {
                 }
                 cacheMutex.Unlock()
 
+                
                 go saveToDatabase(mc, dataToSave)
             } else {
                 cacheMutex.Unlock()
