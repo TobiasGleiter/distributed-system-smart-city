@@ -9,27 +9,6 @@ services:
     deploy:
       replicas: 3
 
-  water-quality:
-    build: water-quality/
-    container_name: water-quality
-    image: water-quality
-    networks:
-      - sensors
-
-  temperature:
-    build: temperature/
-    container_name: temperature
-    image: temperature
-    networks:
-      - sensors
-
-  volume:
-    build: volume/
-    container_name: volume
-    image: volume
-    networks:
-      - sensors
-
 networks:
   sensors:
     driver: bridge
