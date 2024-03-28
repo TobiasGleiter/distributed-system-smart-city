@@ -9,7 +9,8 @@ import (
     "fmt"
 
     "server/air-quality/pkg/db"
-    "server/air-quality/pkg/cpu"
+    //"server/air-quality/pkg/cpu"
+    "server/air-quality/shared"
 
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
@@ -33,7 +34,7 @@ var (
     savingData bool
 )
 
-func AirQualityHandler(mc *db.MongoDBClient) http.HandlerFunc {
+func Handler(mc *db.MongoDBClient) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         var newSensorData SensorData
         if err := json.NewDecoder(r.Body).Decode(&newSensorData); err != nil {
@@ -42,24 +43,40 @@ func AirQualityHandler(mc *db.MongoDBClient) http.HandlerFunc {
         }
 
         cacheMutex.Lock()
-        cache[newSensorData.SensorID] = newSensorData
-        cacheMutex.Unlock()
+        defer cacheMutex.Unlock()
 
-        fmt.Println("Cached")
-
-        response := LeaderResponse{IsLeader: true}
-        w.Header().Set("Content-Type", "application/json")
-        if err := json.NewEncoder(w).Encode(response); err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
+        if _, exists := cache[newSensorData.SensorID]; exists {
+            fmt.Println("Sensor data already exists in cache:", newSensorData.SensorID)
+            response := LeaderResponse{IsLeader: shared.IsLeader()}
+            sendJSONResponse(w, response)
             return
         }
+
+        if !shared.IsLeader() {
+            response := LeaderResponse{IsLeader: false}
+            sendJSONResponse(w, response)
+            return
+        }
+
+        cache[newSensorData.SensorID] = newSensorData
+        fmt.Println("Cached", newSensorData.SensorID)
+
+        response := LeaderResponse{IsLeader: true}
+        sendJSONResponse(w, response)
     }
 }
 
-func SaveCachedDataToDB(mc *db.MongoDBClient, cpuStats *cpu.Stats) {
-	go cpuStats.GetCPUUsage()
+func sendJSONResponse(w http.ResponseWriter, data interface{}) {
+    w.Header().Set("Content-Type", "application/json")
+    if err := json.NewEncoder(w).Encode(data); err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+}
 
-    ticker := time.NewTicker(1 * time.Minute)
+
+func SaveCachedToDatabase(mc *db.MongoDBClient) {
+    ticker := time.NewTicker(10 * time.Second)
     defer ticker.Stop()
     for {
         <-ticker.C
@@ -74,8 +91,9 @@ func SaveCachedDataToDB(mc *db.MongoDBClient, cpuStats *cpu.Stats) {
                 }
                 cacheMutex.Unlock()
 
+                fmt.Println("Saving data to database")
                 
-                go saveToDatabase(mc, dataToSave)
+                go InsertAirQualityIntoDatabase(mc, dataToSave)
             } else {
                 cacheMutex.Unlock()
             }
@@ -83,7 +101,7 @@ func SaveCachedDataToDB(mc *db.MongoDBClient, cpuStats *cpu.Stats) {
     }
 }
 
-func saveToDatabase(mc *db.MongoDBClient, data map[string]SensorData) {
+func InsertAirQualityIntoDatabase(mc *db.MongoDBClient, data map[string]SensorData) {
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
 

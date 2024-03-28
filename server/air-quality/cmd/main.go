@@ -50,11 +50,12 @@ func main() {
 	http.HandleFunc("/bully/health", health.HandleHealthOfNode)
 	http.HandleFunc("/bully/election", election.HandleElectionRequest)
 
-	http.HandleFunc("/sensor/air_quality", airquality.AirQualityHandler(mongoClient))
+	http.HandleFunc("/sensor/air_quality", airquality.Handler(mongoClient))
 
 
 	cpuStats := &cpu.Stats{}
-	go airquality.SaveCachedDataToDB(mongoClient, cpuStats)
+	go cpuStats.GetCPUUsage()
+	go airquality.SaveCachedToDatabase(mongoClient)
 
 
 	fmt.Println("Server listening on ip", cfg.IP)
