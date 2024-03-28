@@ -21,6 +21,7 @@ type SensorData struct {
     SensorID string  `json:"sensor_id"`
     Value    float64 `json:"value"`
     Unit     string  `json:"unit"`
+    Timestamp int64 `json:"timestamp"`
 }
 
 type LeaderResponse struct {
@@ -41,6 +42,8 @@ func Handler(mc *db.MongoDBClient) http.HandlerFunc {
             http.Error(w, err.Error(), http.StatusBadRequest)
             return
         }
+
+        newSensorData.Timestamp = time.Now().Unix()
 
         cacheMutex.Lock()
         defer cacheMutex.Unlock()
