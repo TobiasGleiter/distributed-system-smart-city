@@ -7,10 +7,12 @@ import (
     "time"
     "sync"
     "fmt"
+    //"bytes"
 
     "server/air-quality/pkg/db"
     //"server/air-quality/pkg/cpu"
     "server/air-quality/shared"
+    //"server/air-quality/models"
 
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
@@ -27,6 +29,10 @@ type SensorData struct {
 type LeaderResponse struct {
     IsLeader bool `json:"isLeader"`
     LeaderID int  `json:"leaderID,omitempty"`
+}
+
+type WorkerResponse struct {
+    Acknowledged bool `json:acknowledged`
 }
 
 var (
@@ -77,33 +83,6 @@ func sendJSONResponse(w http.ResponseWriter, data interface{}) {
     }
 }
 
-
-func SaveCachedToDatabase(mc *db.MongoDBClient) {
-    ticker := time.NewTicker(10 * time.Second)
-    defer ticker.Stop()
-    for {
-        <-ticker.C
-        if !savingData {
-            cacheMutex.Lock()
-            if len(cache) > 0 {
-                savingData = true
-                dataToSave := make(map[string]SensorData, len(cache))
-                for sensorID, data := range cache {
-                    dataToSave[sensorID] = data
-                    delete(cache, sensorID)
-                }
-                cacheMutex.Unlock()
-
-                fmt.Println("Saving data to database")
-                
-                go InsertAirQualityIntoDatabase(mc, dataToSave)
-            } else {
-                cacheMutex.Unlock()
-            }
-        }
-    }
-}
-
 func InsertAirQualityIntoDatabase(mc *db.MongoDBClient, data map[string]SensorData) {
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
@@ -123,5 +102,44 @@ func InsertAirQualityIntoDatabase(mc *db.MongoDBClient, data map[string]SensorDa
         // Handle error
     }
 
+    fmt.Println("Saved to database")
+
     savingData = false
+}
+
+func SaveCacheToDatabase(mc *db.MongoDBClient) {
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+    for {
+        <-ticker.C
+        if !savingData {
+            cacheMutex.Lock()
+            if len(cache) > 0 {
+                savingData = true
+                dataToSave := make(map[string]SensorData, len(cache))
+                for sensorID, data := range cache {
+                    dataToSave[sensorID] = data
+                    delete(cache, sensorID)
+                }
+                cacheMutex.Unlock()
+
+                
+                go InsertAirQualityIntoDatabase(mc, dataToSave)
+            } else {
+                cacheMutex.Unlock()
+            }
+        }
+    }
+}
+
+
+
+
+func WorkerHandler() http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        response := WorkerResponse{Acknowledged: true}
+        sendJSONResponse(w, response)
+
+        fmt.Printf("Saving data to db as worker")
+    }
 }

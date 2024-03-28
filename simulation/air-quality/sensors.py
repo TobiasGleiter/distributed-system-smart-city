@@ -35,8 +35,8 @@ class AirQualitySensor(Sensor):
         if response.status_code == 200:
             response_data = json.loads(response.text)
             if response_data["isLeader"] == False:
-                leaderID = response_data["leaderID"]
-                print(f"I am not the leader, the Leader is: {leaderID}")
+                # leaderID = response_data["leaderID"]
+                print(f"Thise Node is not the leader")
             else:
                 print(
                     f"Published air quality to {self.send_url}: {air_quality_value}")
