@@ -66,7 +66,7 @@ func sendElectionMessage(node models.Node) {
 	resp, err := http.Post(fmt.Sprintf("http://%s/bully/election", node.IP), "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println("Error sending election message:", err)
-		shared.SetLeader(shared.NodeID)
+		//shared.SetLeader(shared.NodeID)
 		return
 	}
 	defer resp.Body.Close()
