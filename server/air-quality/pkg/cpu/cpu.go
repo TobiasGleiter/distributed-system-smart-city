@@ -1,25 +1,28 @@
 package cpu
 
 import (
-	"runtime"
+	//"runtime"
 	"time"
 	"fmt"
+
+	"github.com/shirou/gopsutil/cpu"
 )
 
-var (
-	threshold = 90
-)
+type Stats struct{}
 
-func SetThreshold(newThreshold int) {
-	threshold = newThreshold
-}
+func (s *Stats) GetCPUUsage() (float64, error) {
+   cpuPercentages, err := cpu.Percent(time.Second, false)
+   if err != nil {
+	   return 0, err
+   }
 
-func Monitor() {
-	for {
-		cpuUsage := runtime.NumCPU()
+   var totalCpuUsage float64
+   for _, usage := range cpuPercentages {
+	   totalCpuUsage += usage
+   }
+   averageCpuUsage := totalCpuUsage / float64(len(cpuPercentages))
 
-		fmt.Printf(fmt.Sprintf("CPU: %d\n", cpuUsage))
+   fmt.Println("CPU usage:", averageCpuUsage)
 
-        time.Sleep(time.Second * 10)
-	}
+   return averageCpuUsage, nil
 }

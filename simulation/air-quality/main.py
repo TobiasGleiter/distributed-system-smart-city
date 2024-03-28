@@ -8,7 +8,7 @@ async def main():
     try:
         sensor = AirQualitySensor()
 
-        with open('config.json') as f:
+        with open('main.json') as f:
             config = json.load(f)
             cluster_ips = config["cluster_ips"]
 
@@ -20,7 +20,7 @@ async def main():
                 except requests.exceptions.RequestException as e:
                     print(
                         f"Continuing with the next endpoint.")
-            await asyncio.sleep(5)
+            await asyncio.sleep(1)
 
     except KeyboardInterrupt:
         print("Keyboard interrupt detected. Exiting...")

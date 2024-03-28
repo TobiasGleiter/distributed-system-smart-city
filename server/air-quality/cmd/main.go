@@ -11,7 +11,7 @@ import (
 	"server/air-quality/models"
 	"server/air-quality/shared"
 	"server/air-quality/pkg/db"
-	//"server/air-quality/pkg/cpu"
+	"server/air-quality/pkg/cpu"
 	"server/air-quality/internal/bully/health"
 	"server/air-quality/internal/bully/election"
 	"server/air-quality/internal/sensor/airquality"
@@ -46,15 +46,15 @@ func main() {
 
 	go health.CheckHealthOfLeader()
 
-	//go cpu.Monitor()
-
 
 	http.HandleFunc("/bully/health", health.HandleHealthOfNode)
 	http.HandleFunc("/bully/election", election.HandleElectionRequest)
 
 	http.HandleFunc("/sensor/air_quality", airquality.AirQualityHandler(mongoClient))
 
-	go airquality.SaveCachedDataToDB(mongoClient)
+
+	cpuStats := &cpu.Stats{}
+	go airquality.SaveCachedDataToDB(mongoClient, cpuStats)
 
 
 	fmt.Println("Server listening on ip", cfg.IP)
