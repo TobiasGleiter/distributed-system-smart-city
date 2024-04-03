@@ -7,3 +7,6 @@
 `top` <- für Monitoring
 
 Programm als Service mit autostart
+
+Alle Services anzeigen:
+`systemctl list-units --type=service`
