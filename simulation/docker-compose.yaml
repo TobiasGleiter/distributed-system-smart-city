@@ -1,14 +1,6 @@
 version: '3.8'
-
 services:
-  air-quality:
-    build: air-quality/
-    image: air-quality
-    networks:
-      - sensors
+  my_service:
+    image: d4e58a86fcd431e33bb0419dc905496acefc90009ef894640d9cc586fba98133
     deploy:
-      replicas: 3
-
-networks:
-  sensors:
-    driver: bridge
+      replicas: 1000
