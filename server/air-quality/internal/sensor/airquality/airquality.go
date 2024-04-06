@@ -12,7 +12,7 @@ import (
     "server/air-quality/pkg/db"
     //"server/air-quality/pkg/cpu"
     "server/air-quality/shared"
-    //"server/air-quality/models"
+    "server/air-quality/models"
 
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
@@ -39,27 +39,21 @@ var (
     cache      = make(map[string]SensorData)
     cacheMutex sync.Mutex
     savingData bool
+    currentIdx = 0
 )
 
-func Handler(mc *db.MongoDBClient) http.HandlerFunc {
+func RoundRobinBalancer() models.Node {
+    nodes := shared.GetNodes()
+    thisNode := models.Node{ID: shared.NodeID, IP: shared.NodeIP} // Assuming 1 is the ID of the current node
+    allNodes := append(nodes, thisNode)
+
+    node := allNodes[currentIdx]
+    currentIdx = (currentIdx + 1) % len(allNodes)
+	return node
+}
+
+func DistributeSensorData() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        var newSensorData SensorData
-        if err := json.NewDecoder(r.Body).Decode(&newSensorData); err != nil {
-            http.Error(w, err.Error(), http.StatusBadRequest)
-            return
-        }
-
-        newSensorData.Timestamp = time.Now().Unix()
-
-        cacheMutex.Lock()
-        defer cacheMutex.Unlock()
-
-        if _, exists := cache[newSensorData.SensorID]; exists {
-            fmt.Println("Sensor data already exists in cache:", newSensorData.SensorID)
-            response := LeaderResponse{IsLeader: shared.IsLeader()}
-            sendJSONResponse(w, response)
-            return
-        }
 
         if !shared.IsLeader() {
             response := LeaderResponse{IsLeader: false}
@@ -67,8 +61,28 @@ func Handler(mc *db.MongoDBClient) http.HandlerFunc {
             return
         }
 
-        cache[newSensorData.SensorID] = newSensorData
-        fmt.Println("Cached", newSensorData.SensorID)
+        // Forward the request to the next node using round-robin
+        nextNode := RoundRobinBalancer()
+        fmt.Println(nextNode)
+        // Assuming models.Node has an endpoint field
+        resp, err := http.Post(fmt.Sprintf("http://%s/sensor/air_quality/worker", nextNode.IP), "application/json", r.Body)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        defer resp.Body.Close()
+
+        // Check the response from the worker node
+        var workerResp WorkerResponse
+        if err := json.NewDecoder(resp.Body).Decode(&workerResp); err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+
+        if !workerResp.Acknowledged {
+            http.Error(w, "Worker did not acknowledge the request", http.StatusInternalServerError)
+            return
+        }
 
         response := LeaderResponse{IsLeader: true}
         sendJSONResponse(w, response)
@@ -135,11 +149,31 @@ func SaveCacheToDatabase(mc *db.MongoDBClient) {
 
 
 
-func WorkerHandler() http.HandlerFunc {
+func SaveSensorToCache() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        response := WorkerResponse{Acknowledged: true}
-        sendJSONResponse(w, response)
+        fmt.Println("Saving Sensor to cache...")
+        var newSensorData SensorData
+        if err := json.NewDecoder(r.Body).Decode(&newSensorData); err != nil {
+            http.Error(w, err.Error(), http.StatusBadRequest)
+            return
+        }
 
-        fmt.Printf("Saving data to db as worker")
+        newSensorData.Timestamp = time.Now().Unix()
+
+        cacheMutex.Lock()
+        defer cacheMutex.Unlock()
+
+        if _, exists := cache[newSensorData.SensorID]; exists {
+            fmt.Println("Sensor data already exists in cache:", newSensorData.SensorID)
+            response := LeaderResponse{IsLeader: shared.IsLeader()}
+            sendJSONResponse(w, response)
+            return
+        }
+
+        cache[newSensorData.SensorID] = newSensorData
+        fmt.Println("Cached", newSensorData.SensorID)
+
+        response := LeaderResponse{IsLeader: true}
+        sendJSONResponse(w, response)
     }
 }

@@ -7,6 +7,7 @@ import (
 var (
 	Leader int
 	NodeID int
+	NodeIP string
 	Nodes []models.Node
 )
 

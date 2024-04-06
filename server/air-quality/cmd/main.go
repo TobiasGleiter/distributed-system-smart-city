@@ -40,6 +40,7 @@ func main() {
 		nodes = append(nodes, models.Node{ID: node.ID, IP: node.IP})
 	}
 	shared.NodeID = cfg.ID
+	shared.NodeIP = cfg.IP
 	shared.Nodes = nodes
 	shared.SetLeader(100)
 
@@ -50,8 +51,8 @@ func main() {
 	http.HandleFunc("/bully/health", health.HandleHealthOfNode)
 	http.HandleFunc("/bully/election", election.HandleElectionRequest)
 
-	http.HandleFunc("/sensor/air_quality", airquality.Handler(mongoClient))
-	http.HandleFunc("/sensor/air_quality/worker", airquality.WorkerHandler())
+	http.HandleFunc("/sensor/air_quality", airquality.DistributeSensorData())
+	http.HandleFunc("/sensor/air_quality/worker", airquality.SaveSensorToCache())
 
 
 	cpuStats := &cpu.Stats{}
