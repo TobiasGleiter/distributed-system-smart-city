@@ -73,15 +73,9 @@ func DistributeSensorData() http.HandlerFunc {
             return
         }
 
-        fmt.Println("Sensor Data:", newSensorData)
-
-        // Forward the request to the next node using round-robin
         nextNode := RoundRobinBalancer()
-        fmt.Println(nextNode)
-        // Assuming models.Node has an endpoint field
         resp, err := http.Post(fmt.Sprintf("http://%s/sensor/air_quality/worker", nextNode.IP), "application/json", bytes.NewBuffer(jsonData))
         if err != nil {
-            fmt.Println("I save it to my cache...")
             err = saveSensorToCache(newSensorData)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -91,7 +85,6 @@ func DistributeSensorData() http.HandlerFunc {
             return
         }
 
-        // Check the response from the worker node
         var workerResp WorkerResponse
         if err := json.NewDecoder(resp.Body).Decode(&workerResp); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -145,7 +138,6 @@ func SaveCacheToDatabase(mc *db.MongoDBClient) {
 
 
 func saveSensorToCache(data SensorData) error {
-    fmt.Println("Saving to cache")
     cacheMutex.Lock()
     defer cacheMutex.Unlock()
 
@@ -164,7 +156,6 @@ func saveSensorToCache(data SensorData) error {
 
 func SensorCacheHandler() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        fmt.Println("Cache Handler")
         var newSensorData SensorData
         if err := json.NewDecoder(r.Body).Decode(&newSensorData); err != nil {
             http.Error(w, err.Error(), http.StatusBadRequest)
@@ -179,7 +170,7 @@ func SensorCacheHandler() http.HandlerFunc {
 }
 
 func InsertAirQualityIntoDatabase(mc *db.MongoDBClient, data map[string]SensorData) {
-    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
     defer cancel()
 
     collection := mc.Database("sensor").Collection("air_quality")
