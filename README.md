@@ -4,11 +4,9 @@ Simple smart city server application and simulation of sensors for a distributed
 
 ## API-Endpoints of the Server Application
 
-The server application writes the data to the databse (mongodb)
+Test Nodes with CURL:
 
-| Endpoint                    | Method | Data                                                                 |
-| --------------------------- | ------ | -------------------------------------------------------------------- |
-| `/sensor/air_quality/add`   | POST   | `{ "sensor_id": "<sensor_id>", "value": <value>, "unit": "<unit>" }` |
-| `/sensor/water_quality/add` | POST   | `{ "sensor_id": "<sensor_id>", "value": <value>, "unit": "<unit>" }` |
-| `/sensor/volume/add`        | POST   | `{ "sensor_id": "<sensor_id>", "value": <value>, "unit": "<unit>" }` |
-| `/sensor/temperature/add`   | POST   | `{ "sensor_id": "<sensor_id>", "value": <value>, "unit": "<unit>" }` |
+`curl -X POST -H "Content-Type: application/json" -d '{"sensor_id": "sensor123", "value": 25, "unit": "AQI"}' http://localhost:8080/sensor/air_quality
+`
+
+Returns either `{"isLeader":false}` or `{"isLeader":true}`

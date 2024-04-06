@@ -3,7 +3,7 @@
     "ip": "localhost:8080",
     "mongo_uri": "mongodb://localhost:27017",
     "nodes": [
-        { "id": 3,"ip": "localhost:8082"},
-       { "id": 2,"ip": "localhost:8081"}
+        { "id": 2,"ip": "localhost:8081"},
+        { "id": 3,"ip": "localhost:8082"}
     ]
 }
