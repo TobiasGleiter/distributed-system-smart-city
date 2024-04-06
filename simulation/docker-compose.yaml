@@ -1,6 +1,8 @@
 version: '3.8'
 services:
   my_service:
-    image: d4e58a86fcd431e33bb0419dc905496acefc90009ef894640d9cc586fba98133
+    build:
+      context: ./air-quality
+      dockerfile: Dockerfile
     deploy:
-      replicas: 1000
+      replicas: 10
