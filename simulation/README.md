@@ -2,21 +2,10 @@
 
 ## Sensors
 
-There are four simulation programms:
+There are these simulation programms:
 
 1. Air-Quality
-2. Temperature
-3. Volume
-4. Water-Quality
 
+You can run it locally with `python main.py` or using or Docker-Compose.
 Run `docker-compose up -d --build` to run the simulation in docker.
-Note: Air-Quality has currently 3 replicas.
-
-## NATS Topics
-
-The sensors send values on the following topics:
-
-- `water_quality`
-- `air_quality`
-- `temperature`
-- `volume`
+Note: Air-Quality has currently 10 replicas.
