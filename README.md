@@ -2,6 +2,12 @@
 
 Simple smart city server application and simulation of sensors for a distributed system using MongoDB Atalas as Database.
 
+![Demo Video](./docs/demo.mov)
+
+## Architecture
+
+![Architecture Image](./docs/architecture.png)
+
 ## API-Endpoints of the Database-Write-Application
 
 Important from the outside:
