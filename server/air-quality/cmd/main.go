@@ -52,7 +52,7 @@ func main() {
 	http.HandleFunc("/bully/election", election.HandleElectionRequest)
 
 	http.HandleFunc("/sensor/air_quality", airquality.DistributeSensorData())
-	http.HandleFunc("/sensor/air_quality/worker", airquality.SaveSensorToCache())
+	http.HandleFunc("/sensor/air_quality/worker", airquality.SensorCacheHandler())
 
 
 	cpuStats := &cpu.Stats{}

@@ -7,7 +7,7 @@ import (
     "time"
     "sync"
     "fmt"
-    //"bytes"
+    "bytes"
 
     "server/air-quality/pkg/db"
     //"server/air-quality/pkg/cpu"
@@ -61,16 +61,35 @@ func DistributeSensorData() http.HandlerFunc {
             return
         }
 
-        // Forward the request to the next node using round-robin
-        nextNode := RoundRobinBalancer()
-        fmt.Println(nextNode)
-        // Assuming models.Node has an endpoint field
-        resp, err := http.Post(fmt.Sprintf("http://%s/sensor/air_quality/worker", nextNode.IP), "application/json", r.Body)
+        var newSensorData SensorData
+        if err := json.NewDecoder(r.Body).Decode(&newSensorData); err != nil {
+            http.Error(w, err.Error(), http.StatusBadRequest)
+            return
+        }
+
+        jsonData, err := json.Marshal(newSensorData)
         if err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
-        defer resp.Body.Close()
+
+        fmt.Println("Sensor Data:", newSensorData)
+
+        // Forward the request to the next node using round-robin
+        nextNode := RoundRobinBalancer()
+        fmt.Println(nextNode)
+        // Assuming models.Node has an endpoint field
+        resp, err := http.Post(fmt.Sprintf("http://%s/sensor/air_quality/worker", nextNode.IP), "application/json", bytes.NewBuffer(jsonData))
+        if err != nil {
+            fmt.Println("I save it to my cache...")
+            err = saveSensorToCache(newSensorData)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+            }
+            response := LeaderResponse{IsLeader: true}
+            sendJSONResponse(w, response)
+            return
+        }
 
         // Check the response from the worker node
         var workerResp WorkerResponse
@@ -97,29 +116,7 @@ func sendJSONResponse(w http.ResponseWriter, data interface{}) {
     }
 }
 
-func InsertAirQualityIntoDatabase(mc *db.MongoDBClient, data map[string]SensorData) {
-    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-    defer cancel()
 
-    collection := mc.Database("sensor").Collection("air_quality")
-
-    var operations []mongo.WriteModel
-    for sensorID, data := range data {
-        filter := bson.M{"sensorid": sensorID}
-        update := bson.M{"$set": data}
-        model := mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true)
-        operations = append(operations, model)
-    }
-
-    _, err := collection.BulkWrite(ctx, operations)
-    if err != nil {
-        // Handle error
-    }
-
-    fmt.Println("Saved to database")
-
-    savingData = false
-}
 
 func SaveCacheToDatabase(mc *db.MongoDBClient) {
     ticker := time.NewTicker(10 * time.Second)
@@ -147,33 +144,60 @@ func SaveCacheToDatabase(mc *db.MongoDBClient) {
 }
 
 
+func saveSensorToCache(data SensorData) error {
+    fmt.Println("Saving to cache")
+    cacheMutex.Lock()
+    defer cacheMutex.Unlock()
+
+    data.Timestamp = time.Now().Unix()
+
+    if _, exists := cache[data.SensorID]; exists {
+        fmt.Println("Sensor data already exists in cache:", data.SensorID)
+        return nil
+    }
+
+    cache[data.SensorID] = data
+    fmt.Println("Cached", data.SensorID)
+    return nil
+}
 
 
-func SaveSensorToCache() http.HandlerFunc {
+func SensorCacheHandler() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        fmt.Println("Saving Sensor to cache...")
+        fmt.Println("Cache Handler")
         var newSensorData SensorData
         if err := json.NewDecoder(r.Body).Decode(&newSensorData); err != nil {
             http.Error(w, err.Error(), http.StatusBadRequest)
             return
         }
 
-        newSensorData.Timestamp = time.Now().Unix()
+        saveSensorToCache(newSensorData)
 
-        cacheMutex.Lock()
-        defer cacheMutex.Unlock()
-
-        if _, exists := cache[newSensorData.SensorID]; exists {
-            fmt.Println("Sensor data already exists in cache:", newSensorData.SensorID)
-            response := LeaderResponse{IsLeader: shared.IsLeader()}
-            sendJSONResponse(w, response)
-            return
-        }
-
-        cache[newSensorData.SensorID] = newSensorData
-        fmt.Println("Cached", newSensorData.SensorID)
-
-        response := LeaderResponse{IsLeader: true}
+        response := WorkerResponse{Acknowledged: true}
         sendJSONResponse(w, response)
     }
+}
+
+func InsertAirQualityIntoDatabase(mc *db.MongoDBClient, data map[string]SensorData) {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    collection := mc.Database("sensor").Collection("air_quality")
+
+    var operations []mongo.WriteModel
+    for sensorID, data := range data {
+        filter := bson.M{"sensorid": sensorID}
+        update := bson.M{"$set": data}
+        model := mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true)
+        operations = append(operations, model)
+    }
+
+    _, err := collection.BulkWrite(ctx, operations)
+    if err != nil {
+        // Handle error
+    }
+
+    fmt.Println("Saved to database")
+
+    savingData = false
 }
