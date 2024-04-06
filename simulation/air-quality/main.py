@@ -20,7 +20,7 @@ async def main():
                 except requests.exceptions.RequestException as e:
                     print(
                         f"Continuing with the next endpoint.")
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
 
     except KeyboardInterrupt:
         print("Keyboard interrupt detected. Exiting...")

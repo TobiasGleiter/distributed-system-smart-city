@@ -1,0 +1,8 @@
+{
+    "cluster_ips": [
+      "http://192.168.0.21:23312/sensor/air_quality",
+      "http://192.168.0.22:23312/sensor/air_quality",
+      "http://192.168.0.23:23312/sensor/air_quality"
+    ]
+  }
+  
