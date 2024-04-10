@@ -3,7 +3,7 @@
     "ip": "0.0.0.0:23312",
     "mongo_uri": "mongodb+srv://test_user2:EOfApjntJgGosIJ6@smartcity.4okvjzf.mongodb.net/?retryWrites=true&w=majority&appName=SmartCity",
     "nodes": [
-        { "id": 1,"ip": "192.168.0.21:23312"},
-        { "id": 2,"ip": "192.168.0.22:23312"}
+        { "id": 1,"ip": "192.168.180.65:23312"},
+        { "id": 2,"ip": "192.168.180.66:23312"}
     ]
 }
