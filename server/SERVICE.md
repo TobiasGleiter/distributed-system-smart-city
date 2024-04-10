@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=pi
 WorkingDirectory=/home/pi/studienprojekte/smartcity/server
-ExecStart=./main -config=main1.json
+ExecStart=main -config=main1.json
 
 Restart=always
 RestartSec=3
