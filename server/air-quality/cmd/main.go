@@ -11,7 +11,7 @@ import (
 	"server/air-quality/models"
 	"server/air-quality/shared"
 	"server/air-quality/pkg/db"
-	"server/air-quality/pkg/cpu"
+	//"server/air-quality/pkg/cpu"
 	"server/air-quality/internal/bully/health"
 	"server/air-quality/internal/bully/election"
 	"server/air-quality/internal/sensor/airquality"
