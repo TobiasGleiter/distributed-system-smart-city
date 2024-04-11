@@ -55,8 +55,8 @@ func main() {
 	http.HandleFunc("/sensor/air_quality/worker", airquality.SensorCacheHandler())
 
 
-	cpuStats := &cpu.Stats{}
-	go cpuStats.GetCPUUsage()
+	// cpuStats := &cpu.Stats{}
+	// go cpuStats.GetCPUUsage()
 	go airquality.SaveCacheToDatabase(mongoClient)
 
 
