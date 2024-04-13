@@ -48,3 +48,5 @@ PW: `Vs24!DhWb20!`
 ---
 
 `curl -X GET 192.168.180.65:23312/sensor/air_quality`
+
+pw: abc14az
