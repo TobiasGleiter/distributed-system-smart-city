@@ -47,6 +47,7 @@ PW: `Vs24!DhWb20!`
 
 ---
 
-`curl -X GET 192.168.180.65:23312/sensor/air_quality`
+`curl -X GET 192.168.180.65:23312/bully/health`
+`curl -X GET 10.8.0.6:23312/bully/health`
 
 pw: abc14az
