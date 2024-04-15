@@ -8,7 +8,7 @@ async def main():
     try:
         sensor = AirQualitySensor()
 
-        with open('main.json') as f:
+        with open('sensor_config.json') as f:
             config = json.load(f)
             cluster_ips = config["cluster_ips"]
 

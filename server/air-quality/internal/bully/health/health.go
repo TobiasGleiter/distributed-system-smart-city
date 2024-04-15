@@ -28,16 +28,17 @@ func CheckHealthOfLeader() {
             }
 
             if err := checkNodeHealth(leaderNode); err != nil {
-                fmt.Println("Leader is not alive. Starting election...")
+                //fmt.Println("Leader is not alive...")
                 election.StartElection()
 
                 time.Sleep(5 * time.Second)
 
-                newLeader := shared.GetLeader()
-                fmt.Println("New Leader:", newLeader)
-            } else {
-                fmt.Println("Leader is alive:", shared.GetLeader())
-            }
+                // newLeader := shared.GetLeader()
+                //fmt.Println("New Leader selected")//, newLeader
+            } 
+            // else {
+            //     fmt.Println("Leader is alive!") //, shared.GetLeader()
+            // }
         }
         time.Sleep(7 * time.Second)
     }
@@ -46,14 +47,14 @@ func CheckHealthOfLeader() {
 func checkNodeHealth(node models.Node) error {
     resp, err := http.Get(fmt.Sprintf("http://%s/bully/health", node.IP))
     if err != nil {
-        fmt.Println("Error checking leader health:", err)
+        //fmt.Println("Error checking leader health:", err)
         return err
     }
     defer resp.Body.Close()
 
     if resp.StatusCode != http.StatusOK {
         fmt.Printf("Node %d (%s) responded with status code: %d\n", node.ID, node.IP, resp.StatusCode)
-        return fmt.Errorf("leader not healthy")
+        return fmt.Errorf("Leader not healthy")
     }
 
     return nil

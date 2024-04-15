@@ -1,3 +1,7 @@
 .venv
 __pycache__
+tg-smart-city.ovpn
+smart-city-tg.ovpn
 VerteilteSysteme.ovpn
+
+PRIVATE.md
