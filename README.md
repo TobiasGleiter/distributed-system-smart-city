@@ -2,8 +2,6 @@
 
 Simple smart city server application and simulation of sensors for a distributed system using MongoDB Atalas as Database.
 
-![Demo Video](./docs/demo.mov)
-
 ## Architecture
 
 ![Architecture Image](./docs/architecture.png)
@@ -13,14 +11,13 @@ Simple smart city server application and simulation of sensors for a distributed
 Important from the outside:
 
 - `/sensor/air_quality`
-- `/sensor/air_quality/worker`
 
 Internal use for the election process:
 
 - `/bully/health`
 - `/bully/election`
 
-## Testing the Endpoints with Curl
+Note: the election algorithm is not implemented correctly. The eletion messages should only send to nodes with a higher ID and after a specific time the node with the highest ID sends a message to all, that he is the leader.
 
 ### Important Notes
 
